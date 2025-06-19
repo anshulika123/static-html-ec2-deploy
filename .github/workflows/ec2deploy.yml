@@ -10,15 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Copy files to EC2 via SCP
-      run: |
-        scp -o StrictHostKeyChecking=no -i key.pem index.html ubuntu@13.60.87.194:/home/ubuntu/index.html
-      env:
-        PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+      - name: Copy files to EC2 via SCP
+        run: |
+          echo "$PRIVATE_KEY" > key.pem
+          chmod 400 key.pem
+          scp -o StrictHostKeyChecking=no -i key.pem index.html ubuntu@13.60.87.194:/home/ubuntu/
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
 
-    - name: SSH and move file to web directory
-      run: |
-        ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@13.60.87.194 "sudo mv /home/ubuntu/index.html /var/www/html/index.html"
+      - name: SSH and move file to web directory
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@13.60.87.194 "sudo mv /home/ubuntu/index.html /var/www/html/index.html"
