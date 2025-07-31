@@ -7,13 +7,13 @@ pipeline {
         choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Target environment')
     }
 
-   /* environment {
+    environment {
         SSH_KEY_ID = 'ec2-ssh-key' // Jenkins SSH credential ID
         REMOTE_USER = 'ubuntu'
-        REMOTE_HOST = '51.20.181.213'
-        REMOTE_DIR = '/home/ubuntu/my_app'
-        PORT = '3000'
-    }*/
+        REMOTE_HOST = '34.203.206.150'
+        REMOTE_DIR = '/home/ubuntu/static-html-ec2-deploy'
+        // PORT = '3000'
+    }
 
     stages {
         stage('Checkout') {
@@ -31,6 +31,18 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo "Deploy for branch ${params.BRANCH_NAME} -- ENV: ${params.ENV}"
+                
+                sshagent (credentials: ["${env.SSH_KEY_ID}"]) {
+                    sh '''
+                        # Copy index.html to EC2
+                        scp -o StrictHostKeyChecking=no index.html ${env.REMOTE_USER}@${env.REMOTE_HOST}:${env.REMOTE_DIR}/
+
+                        # SSH and move file to web directory
+                        ssh -o StrictHostKeyChecking=no ${env.REMOTE_USER}@${env.REMOTE_HOST} "sudo mv ${env.REMOTE_DIR}/index.html /var/www/html/index.html"
+                    '''
+                }
+            }
+        
                 
             }
         }
