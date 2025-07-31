@@ -33,18 +33,21 @@ pipeline {
                 echo "Deploy for branch ${params.BRANCH_NAME} -- ENV: ${params.ENV}"
                 
                 withCredentials([sshUserPrivateKey(credentialsId: "${env.SSH_KEY_ID}", keyFileVariable: 'KEYFILE')]) {
-                                bat """
-                                    echo Using key: %KEYFILE%
+                            bat """
+                                echo Using key: %KEYFILE%
 
-                                    REM Remove all existing permissions and grant only the Jenkins user Full Control
-                                    icacls "%KEYFILE%" /inheritance:r
-                                    icacls "%KEYFILE%" /grant:r "%USERNAME%:F"
+                                REM Remove inheritance
+                                icacls "%KEYFILE%" /inheritance:r
 
-                                    scp -o StrictHostKeyChecking=no -i %KEYFILE% index.html ${env.REMOTE_USER}@${env.REOTE_HOST}:${env.REMOTE_DIR}/
+                                REM Grant Full Control only to SYSTEM
+                                icacls "%KEYFILE%" /grant:r "SYSTEM:F"
 
-                                    ssh -o StrictHostKeyChecking=no -i %KEYFILE% ${env.REMOTE_USER}@${env.REMOTE_HOST} "sudo mv ${env.REMOTE_DIR}/index.html /var/www/html/index.html"
-                                """
-                }
+                                REM Double-check the remote host spelling!
+                                scp -o StrictHostKeyChecking=no -i "%KEYFILE%" index.html ${env.REMOTE_USER}@${env.REMOTE_HOST}:${env.REMOTE_DIR}/
+
+                                ssh -o StrictHostKeyChecking=no -i "%KEYFILE%" ${env.REMOTE_USER}@${env.REMOTE_HOST} "sudo mv ${env.REMOTE_DIR}/index.html /var/www/html/index.html"
+                            """
+                        }
            }
 
       }
