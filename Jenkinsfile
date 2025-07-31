@@ -15,10 +15,6 @@ pipeline {
         PORT = '3000'
     }*/
 
-    tools {
-    nodejs 'node-version' // Match the name you configured
-}
-
     stages {
         stage('Checkout') {
             steps {
@@ -32,19 +28,18 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Deploy') {
             steps {
-                echo "In Build Stage"
-                bat '''
-                    npm install
-                    "echo After Install"
-                    npm run build
-                    "echo After build"
-                '''
+                echo "Deploy for branch ${params.BRANCH_NAME} -- ENV: ${params.ENV}"
+                
             }
         }
 
     }
 
-    post {}
+    post {
+        failure {
+            echo "Deployment failed. Rolling back..."
+        }
+    }
 }
