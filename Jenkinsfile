@@ -33,7 +33,7 @@ pipeline {
                 echo "Deploy for branch ${params.BRANCH_NAME} -- ENV: ${params.ENV}"
                 
                 withCredentials([sshUserPrivateKey(credentialsId: "${env.SSH_KEY_ID}", keyFileVariable: 'KEYFILE')]) {
-                    sh """
+                    bat """
                           chmod 400 \$KEYFILE
 
                           scp -o StrictHostKeyChecking=no -i \$KEYFILE index.html ${env.REMOTE_USER}@${env.REMOTE_HOST}:${env.REMOTE_DIR}/
